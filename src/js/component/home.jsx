@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header.js";
 
-let initialState = {
-    label: '',
-    done: false,
+let initialState = "";
 
-}
-
-let urlBase = 'https://fake-todo-list-52f9a4ed80ce.herokuapp.com/todos/user/adriela'
+//url del api con la que se hacen los metodos
+let ApiUrl = 'https://fake-todo-list-52f9a4ed80ce.herokuapp.com/todos/user/adriela'
 
 const Home = () => {
 
@@ -17,40 +14,107 @@ const Home = () => {
     //controla los todos agregados
     const [todos, setTodos] = useState([]);
 
+    //metodo POST
+    const createUser = async () => {
+        try {
+            let response = await fetch(ApiUrl, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify([])
+            });
+
+            if (response.ok) {
+                //aqui se llama la funcion getTaskList
+                getTaskList()
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    //metodo PUT
+    const addTaskToList = async (e) => {
+        try {
+            if (e.key === "Enter" || e.type == "click"){
+                if (todoInput !== '') {
+                    let newTaskList = [...todos, { label: todoInput, done: false }];
+                    let response = await fetch(ApiUrl, {
+                        method: "PUT",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify(newTaskList)
+                    });
+                    if (response.ok) {
+                        getTaskList()
+                    }
+                    setTodoInput('');
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     //asigna el valor que fue ingresado en el input
-    const onInputChage = (event) => {
-        setTodoInput({
-            [event.target.name]: event.target.value
-        });
+    const onInputChange = (event) => {
+        setTodoInput(event.target.value);
     };
 
     //agrega la tarea a la lista
-    const onFormSubmit = (event) => {
-        event.preventDefault();
-        setTodos([...todos, todoInput]);
-        setTodoInput("");
-    };
+    // const onFormSubmit = (event) => {
+    //     event.preventDefault();
+    //     setTodos([...todos, todoInput]);
+    //     setTodoInput("");
+    // };
 
     //elimina una tarea
-    const handleDelete = (position) => {
-        setTodos(todos.filter((value, index) => index !== position))
+    const handleDelete = async (position) => {
+        try {
+            let updatedTaskList = todos.filter((value, index) => index !== position)
+            //elimina una tarea desde la API
+            let response = await fetch(ApiUrl, {
+                method: "PUT",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify(updatedTaskList)
+            });
+            if (response.ok) {
+                getTaskList()
+            }
+        } catch (error) {
+
+        }
 
     };
 
     //elimina todos los ToDos de la lista
-    function clearList() {
-        setTodos([]); // Frontend
-        setTodoList([]); // Backend
+    async function clearList() {
+        let response = await fetch(ApiUrl, {
+            method: "DELETE"
+        })
+        if (response.ok) {
+            createUser()
+        } else if (response.status == 404) {
+            createUser()
+        }
     }
 
+    //metodo GET
+    const getTaskList = async () => {
+        try {
+            let response = await fetch(ApiUrl)
+            if (response.ok) {
+                let data = await response.json()
+                setTodos(data)
+            } else if (response.status == 400) {
+                createUser()
+            }
 
-    const getTask = async () => {
-        let response = await fetch(urlBase)
-        let data = await response.json()
-        setTodos(data)
+        } catch (error) {
+            console.log(error)
+        }
+
     }
 
-    useEffect(() => { getTask() }, [])
+    useEffect(() => { getTaskList() }, [])
 
     return (
         //genera estructura principal del programa
@@ -63,7 +127,7 @@ const Home = () => {
 
                     {/** espacio para agregar tareas a la lista */}
                     <div className="mt-4">
-                        <form onSubmit={onFormSubmit} className="row align-items-center">
+                        <div className="row align-items-center">
                             <div className="col">
                                 <input className='form-control form-control'
                                     type='text'
@@ -71,20 +135,21 @@ const Home = () => {
                                     value={todoInput.label}
                                     name='label'
                                     required
-                                    onChange={onInputChage}
+                                    onChange={onInputChange}
+                                    onKeyDown={addTaskToList}
                                 ></input>
                             </div>
                             <div className="col-auto d-flex justify-content-end">
-                                <button className='btn-add'>
-                                    <i class="fa fa-solid fa-plus"></i>
+                                <button onClick={addTaskToList} className='btn-add'>
+                                    <i className="fa fa-solid fa-plus"></i>
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
 
                     {/** muestra las tareas agregadas y el boton eliminar */}
                     <div>
-                        <form>
+                        <div>
                             {todos.map((todo, index) => (
                                 <div className="mt-3 d-flex align-items-center">
                                     <div>
@@ -99,22 +164,22 @@ const Home = () => {
                                     <div className="col-auto">
                                         <button className="btn-done d-flex justify-content-end"
                                             onClick={() => handleDelete(index)}>
-                                            <i class="fa fa-solid fa-check"></i>
+                                            <i className="fa fa-solid fa-check"></i>
                                         </button>
                                     </div>
                                 </div>
                             )
                             )}
-                        </form>
-                                
+                        </div>
 
+                        {/** boton para eliminar todas las tareas */}
                         <button
                             className="btn-delete mt-3"
                             onClick={() => {
                                 clearList();
                             }}
                         >
-                            <i class="fa fa-solid fa-trash"></i>
+                            <i className="fa fa-solid fa-trash"></i>
                         </button>
 
                         {/** muestra cuantas tareas pendientes hay */}
