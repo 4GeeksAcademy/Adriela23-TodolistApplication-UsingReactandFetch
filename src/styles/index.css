@@ -10,3 +10,47 @@
     import 'relative/path/to/stylesheet.scss';
 
 */
+body {
+background-color: #a59fff;
+}
+.container {
+    margin-top: 100px;
+    border-radius: 10px;
+    background-color: whitesmoke;
+    width: 50%;
+}
+
+
+h1 {
+    text-align: center;
+    color: #a07dff;
+}
+
+h5{
+    color: #a07dff;
+}
+
+.btn-done {
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 35px;
+    font-size: 20px;
+    color: #a07dff;
+}
+
+.btn-add {
+    border: none;
+    border-radius: 8px;
+    font-size: 29px;
+    color: #a07dff;
+}
+
+.btn-delete {
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    color: #a07dff;
+}
